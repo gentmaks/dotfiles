@@ -15,6 +15,7 @@ Clone the repo:
 
 ```sh
 git clone https://github.com/<username>/dotfiles ~/.dotfiles
+```
 
 .
 ├── gh
