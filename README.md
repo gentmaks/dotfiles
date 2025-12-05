@@ -17,6 +17,7 @@ Clone the repo:
 git clone https://github.com/<username>/dotfiles ~/.dotfiles
 ```
 
+```sh
 .
 ├── gh
 ├── ghostty
@@ -29,3 +30,4 @@ git clone https://github.com/<username>/dotfiles ~/.dotfiles
 │           └── plugins
 │               └── lsp
 └── raycast
+```
