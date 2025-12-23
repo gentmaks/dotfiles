@@ -57,6 +57,7 @@ return {
                 "pylint",
                 "clangd",
                 "denols",
+                "google-java-format",
                 -- { 'eslint_d', version = '13.1.2' },
             },
 

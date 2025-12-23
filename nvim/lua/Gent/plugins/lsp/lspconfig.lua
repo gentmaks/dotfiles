@@ -165,6 +165,16 @@ return {
         })
         vim.lsp.enable("ts_ls")
 
+        -- jdtls (Java)
+        vim.lsp.config("jdtls", {
+            -- jdtls usually requires a root directory (git, maven, gradle) to function properly
+            root_dir = function(fname)
+                return require("lspconfig").util.root_pattern("pom.xml", "gradle.build", ".git")(fname) or
+                    vim.fn.getcwd()
+            end,
+        })
+        vim.lsp.enable("jdtls")
+
         -- gopls
         vim.lsp.config("gopls", {
             settings = {
