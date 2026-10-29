@@ -24,7 +24,9 @@
     "0xdhrv",
     "xmok",
     "hayk_safaryan",
-    "alexi.build"
+    "alexi.build",
+    "oussama_moussaoui",
+    "kirill-markin"
   ],
   "pastContributors": [
     "jonasengelmann"
@@ -100,6 +102,13 @@
       "subtitle": "Google Chrome",
       "description": "Name the currently active Google Chrome window.",
       "mode": "no-view"
+    },
+    {
+      "name": "search-windows",
+      "title": "Search Windows",
+      "subtitle": "Google Chrome",
+      "description": "List all open windows and focus the selected one.",
+      "mode": "view"
     }
   ],
   "tools": [
@@ -117,6 +126,9 @@
         },
         "required": []
       },
+      "output": {
+        "type": "string"
+      },
       "confirmation": false
     },
     {
@@ -132,6 +144,9 @@
           }
         },
         "required": []
+      },
+      "output": {
+        "type": "string"
       },
       "confirmation": false
     },
@@ -149,12 +164,18 @@
         },
         "required": []
       },
+      "output": {
+        "type": "string"
+      },
       "confirmation": false
     },
     {
       "name": "open-current-in-guest",
       "title": "Open Current Tab in Guest",
       "description": "Open the current active tab's URL in a new Chrome Guest window.",
+      "output": {
+        "type": "string"
+      },
       "confirmation": false
     },
     {
@@ -195,12 +216,56 @@
           "query"
         ]
       },
+      "output": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "url": {
+              "type": "string"
+            },
+            "title": {
+              "type": "string"
+            },
+            "lastVisited": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "id",
+            "url",
+            "title",
+            "lastVisited"
+          ]
+        }
+      },
       "confirmation": false
     },
     {
       "name": "get-profiles",
       "title": "Get Profiles",
       "description": "Get all Chrome profiles.",
+      "output": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "id": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name",
+            "id"
+          ]
+        }
+      },
       "confirmation": false
     }
   ],

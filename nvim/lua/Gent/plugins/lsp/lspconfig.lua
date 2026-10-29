@@ -187,6 +187,14 @@ return {
         })
         vim.lsp.enable("jdtls")
 
+        --pyright
+
+        vim.lsp.config("basedpyright", {})
+        vim.lsp.enable("basedpyright")
+
+        vim.lsp.config("ruff", {})
+        vim.lsp.enable("ruff")
+
         -- gopls
         vim.lsp.config("gopls", {
             settings = {
@@ -200,5 +208,25 @@ return {
             },
         })
         vim.lsp.enable("gopls")
+        -- clangd (C / C++)
+        vim.lsp.config("clangd", {
+            cmd = {
+                "clangd",
+                "--background-index",
+                "--clang-tidy",
+                "--completion-style=detailed",
+                "--header-insertion=iwyu",
+            },
+            filetypes = { "c", "cpp", "objc", "objcpp" },
+            root_dir = function(fname)
+                return require("lspconfig").util.root_pattern(
+                    "compile_commands.json",
+                    "compile_flags.txt",
+                    ".git"
+                )(fname) or vim.fn.getcwd()
+            end,
+        })
+
+        vim.lsp.enable("clangd")
     end,
 }

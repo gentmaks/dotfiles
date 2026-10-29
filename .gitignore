@@ -1,4 +1,27 @@
-.cursor
-.vscode
-.claude
-.js.map
+# Editor and OS files
+.cursor/
+.vscode/
+.claude/
+.DS_Store
+
+# Dependencies and build output
+**/node_modules/
+**/dist/
+**/build/
+*.js.map
+
+# Runtime state, logs, and credentials
+**/*.log
+**/.nvimlog
+**/session.json
+**/hosts.yml
+**/.cagent_first_run
+configstore/
+herdr/.plugins.lock
+herdr/release-notes.json
+
+# Temporary files
+*.tmp
+*.swp
+*.swo
+*~
