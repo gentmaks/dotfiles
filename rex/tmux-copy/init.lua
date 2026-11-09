@@ -18,12 +18,10 @@ local function rect(node, id)
   return node.split and (rect(node.split.before, id) or rect(node.split.after, id))
 end
 
-function M.setup(opts)
-  opts = opts or {}
-
+local function register_action(name, title, floating)
   rex.action({
-    name = "tmux_copy_mode",
-    title = "Copy Mode (tmux)",
+    name = name,
+    title = title,
     run = function(ctx)
       local view, err = rex.session.view({})
       if view == nil then
@@ -37,16 +35,24 @@ function M.setup(opts)
               return
             end
           end
-          local bounds = rect(layer.layout, ctx.block_id)
-          if bounds then
+          local source_bounds = rect(layer.layout, ctx.block_id)
+          if source_bounds then
             -- Cover the source pane, or the whole window if it is zoomed.
             -- Opening the float unzooms the pane, so the script zooms it again.
             local zoomed = w.zoomed_block_id == ctx.block_id
-            if zoomed then
+            local bounds = floating and { 0.15, 0.15, 0.70, 0.70 } or source_bounds
+            if zoomed and not floating then
               bounds = { 0, 0, 1, 1 }
             end
-            -- Start at the source's size so copy mode doesn't open at 80x24
-            local size = rex.block.call("com.superlogical.terminal", "size", { block_id = ctx.block_id })
+            local block_options = {
+              shell = "none",
+              command = { "bash", "-c", script, "rex-tmux-copy", ctx.block_id, zoomed and "zoomed" or "-" },
+            }
+            if not floating then
+              -- Match the source size so copy mode doesn't open at 80x24.
+              local size = rex.block.call("com.superlogical.terminal", "size", { block_id = ctx.block_id })
+              block_options.size = size and { columns = size.columns, rows = size.rows } or nil
+            end
             local _, err = rex.session.new_layer({
               window_id = w.window_id,
               bounds = bounds,
@@ -54,11 +60,7 @@ function M.setup(opts)
               layout = rex.layout.block({
                 flavor = "com.superlogical.terminal.shell",
                 label = "copy mode",
-                options = {
-                  shell = "none",
-                  size = size and { columns = size.columns, rows = size.rows } or nil,
-                  command = { "bash", "-c", script, "rex-tmux-copy", ctx.block_id, zoomed and "zoomed" or "-" },
-                },
+                options = block_options,
               }),
             })
             if err ~= nil then
@@ -71,9 +73,19 @@ function M.setup(opts)
       error("tmux copy mode: no pane " .. tostring(ctx.block_id), 0)
     end,
   })
+end
+
+function M.setup(opts)
+  opts = opts or {}
+
+  register_action("tmux_copy_mode", "Copy Mode (tmux)", false)
+  register_action("tmux_copy_mode_float", "Copy Mode (tmux, floating)", true)
 
   if opts.key ~= false then
     rex.bind(opts.key or "ctrl+a>[", "tmux_copy_mode")
+  end
+  if opts.float_key then
+    rex.bind(opts.float_key, "tmux_copy_mode_float")
   end
 end
 

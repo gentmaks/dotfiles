@@ -25,13 +25,16 @@ Add this line to `~/.config/rex/init.lua`, then run `rex config reload`. Reload 
 require("tmux-copy").setup()
 ```
 
-To use a different key, pass it to `setup`:
+To use different keys, pass them to `setup`. `key` opens over the source pane; `float_key` opens in a smaller centered pane:
 
 ```lua
-require("tmux-copy").setup({ key = "ctrl+b>[" })
+require("tmux-copy").setup({
+  key = "cmd+shift+o>o",
+  float_key = "cmd+shift+o>f",
+})
 ```
 
-With `key = false`, nothing is bound and you can bind the `tmux_copy_mode` action yourself.
+With `key = false`, the source-sized action is not bound. `float_key` is optional; if set to `false` or omitted, the centered action is not bound. The actions are `tmux_copy_mode` and `tmux_copy_mode_float`.
 
 ## Customize
 
@@ -56,7 +59,7 @@ Copy mode uses tmux's `copy-mode-vi` table, so `hjkl`, `w`, `b`, `/`, `?`, `n`, 
 
 ## How it works
 
-The action opens a floating pane at the same position as the focused pane. The floating pane captures the original with `rex capture`, replays the capture into a tmux server on a private socket and enters copy mode once the replay ends. When you leave copy mode, the script sends the yanked text to the clipboard with OSC 52, focuses the original pane and exits, which closes the floating pane. Your own tmux sessions are not touched.
+The source-sized action opens over the focused pane. The centered action opens a smaller floating pane. Both capture the original with `rex capture`, replay the capture into a tmux server on a private socket, and enter copy mode. The cursor is placed on the last nonblank visible row, while keeping the one-row adjustment needed at the bottom of the float. When you leave copy mode, the script sends the yanked text to the clipboard with OSC 52, focuses the original pane and exits, which closes the floating pane. Your own tmux sessions are not touched.
 
 ## Limitations
 

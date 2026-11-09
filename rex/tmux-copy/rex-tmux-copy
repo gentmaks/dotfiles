@@ -44,7 +44,7 @@ set -g escape-time 0
 set -g mode-keys vi
 set -g mouse on
 set -g set-clipboard off
-set -g exit-unattached on
+set -g exit-unattached off
 set -as terminal-features ',*:RGB'
 set -g prefix None
 
@@ -59,16 +59,6 @@ bind -T copy-mode-vi Escape if -F '#{selection_present}' \
 # Only y and Enter copy to the clipboard. They set @yank before leaving.
 bind -T copy-mode-vi y { set -g @yank 1 ; send -X copy-selection-and-cancel }
 bind -T copy-mode-vi Enter { set -g @yank 1 ; send -X copy-selection-and-cancel }
-
-# Enter copy mode once the replay has finished. The cursor starts on the last
-# captured line, one row above the float's hidden bottom row.
-set-hook -g pane-title-changed {
-	if -F '#{==:#{pane_title},rex-tmux-copy-ready}' {
-		copy-mode
-		send -X cursor-up
-		set-hook -gu pane-title-changed
-	}
-}
 
 # On leaving copy mode, save the yank next to the socket if y or Enter was
 # pressed, then stop the server. Both run in one shell so the kill can't cut
@@ -88,11 +78,40 @@ source-file -q ~/.config/rex/tmux-copy.conf
 EOF
 
 # Keep the final newline. A float draws its terminal one row lower than a
-# tiled pane of the same size and hides its bottom row, so the replay ends
-# one row up to line up with the pane underneath.
+# tiled pane of the same size and hides its bottom row.
 rex capture -b "$src" --format vt --unwrap >"$dir/cap.vt"
-# Replay the capture, then set the pane title that the config waits for. The
-# client exits non-zero when the config kills the server.
-tmux -S "$dir/s" -f "$dir/tmux.conf" new-session -s copy sh -c \
-	'cat "$1"; printf "\033]2;rex-tmux-copy-ready\033\\"; exec sleep 2147483647' sh "$dir/cap.vt" ||
-	true
+# Replay in a detached pane so we can position the copy-mode cursor on the
+# last nonblank screen row before attaching the floating client.
+tmux -S "$dir/s" -f "$dir/tmux.conf" new-session -d -s copy sh -c \
+	'cat "$1"; printf "\033]2;rex-tmux-copy-ready\033\\"; exec sleep 2147483647' sh "$dir/cap.vt"
+
+for ((i = 0; i < 1000; i++)); do
+	[[ $(tmux -S "$dir/s" display-message -p -t copy:0.0 '#{pane_title}' 2>/dev/null || true) == rex-tmux-copy-ready ]] && break
+	tmux -S "$dir/s" has-session -t copy 2>/dev/null || break
+	sleep 0.01
+done
+if [[ $(tmux -S "$dir/s" display-message -p -t copy:0.0 '#{pane_title}' 2>/dev/null || true) != rex-tmux-copy-ready ]]; then
+	echo "rex-tmux-copy: timed out replaying the pane" >&2
+	exit 1
+fi
+
+pane=copy:0.0
+height=$(tmux -S "$dir/s" display-message -p -t "$pane" '#{pane_height}')
+last_row=$(tmux -S "$dir/s" capture-pane -p -t "$pane" |
+	awk 'NF { row = NR - 1 } END { print row + 0 }')
+target_row=$last_row
+if ((height > 1 && target_row >= height - 1)); then
+	# The float hides its bottom row; preserve the existing alignment there.
+	target_row=$((height - 2))
+fi
+
+tmux -S "$dir/s" copy-mode -t "$pane"
+cursor_row=$(tmux -S "$dir/s" display-message -p -t "$pane" '#{copy_cursor_y}')
+if ((cursor_row > target_row)); then
+	tmux -S "$dir/s" send-keys -t "$pane" -X -N "$((cursor_row - target_row))" cursor-up
+elif ((cursor_row < target_row)); then
+	tmux -S "$dir/s" send-keys -t "$pane" -X -N "$((target_row - cursor_row))" cursor-down
+fi
+
+# The client exits non-zero when copy mode closes and the hook kills the server.
+tmux -S "$dir/s" attach-session -t copy || true

@@ -12,4 +12,7 @@ rex.bind("cmd+shift+f", "float_shell")
 rex.bind("cmd+shift+m", "pane.minimize_floating")
 
 -- Floating tmux copy mode for the focused pane.
-require("tmux-copy").setup({ key = "cmd+shift+o" })
+require("tmux-copy").setup({ key = "cmd+shift+o>o", float_key = "cmd+shift+o>f" })
+
+-- Cmd-G opens Lazygit in a floating pane here.
+rex.bind("cmd+g", "float_lazygit")
