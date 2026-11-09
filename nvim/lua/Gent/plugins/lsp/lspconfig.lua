@@ -228,5 +228,9 @@ return {
         })
 
         vim.lsp.enable("clangd")
+
+        -- texlab (LaTeX / BibTeX)
+        vim.lsp.config("texlab", {})
+        vim.lsp.enable("texlab")
     end,
 }

@@ -1,0 +1,19 @@
+-- Open a shell directly in a focused floating layer.
+rex.action{
+  name = "float_shell",
+  title = "New Floating Shell",
+  description = "Open a shell in a focused floating pane.",
+  run = function(ctx)
+    local layer, err = rex.session.new_layer{
+      bounds = {0.15, 0.15, 0.70, 0.70},
+      focus = true,
+      layout = rex.layout.block{
+        flavor = "com.superlogical.terminal.shell",
+      },
+    }
+    if not layer then
+      error("float_shell: " .. tostring(err), 0)
+    end
+    return layer
+  end,
+}

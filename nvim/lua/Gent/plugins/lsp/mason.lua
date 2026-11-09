@@ -45,6 +45,7 @@ return {
                 "angularls",
                 "emmet_ls",
                 "emmet_language_server",
+                "texlab",
                 -- "eslint",
                 "marksman",
             },

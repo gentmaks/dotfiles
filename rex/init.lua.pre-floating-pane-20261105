@@ -1,0 +1,5 @@
+-- Local Rex copy mode: opens the focused pane's captured text in Neovim.
+require("copy_mode")
+
+-- Cmd-Shift-C opens the read-only snapshot. Change this binding if it conflicts.
+rex.bind("cmd+shift+c", "copy_mode")

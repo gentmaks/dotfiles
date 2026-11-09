@@ -109,3 +109,31 @@ vim.keymap.set("n", "<leader>lx", function()
         underline = isLspDiagnosticsVisible
     })
 end, { desc = "Toggle LSP diagnostics" })
+
+vim.keymap.set("n", "<leader>l", function()
+    if vim.bo.filetype ~= "tex" then
+        vim.notify("LaTeX preview is available in .tex files", vim.log.levels.WARN)
+        return
+    end
+
+    if vim.fn.executable("latexmk") == 0 then
+        vim.notify(
+            "Install latexmk with sudo tlmgr --repository https://ftp.math.utah.edu/pub/tex/historic/systems/texlive/2025/tlnet-final install latexmk",
+            vim.log.levels.ERROR
+        )
+        return
+    end
+
+    local source_buf = vim.api.nvim_get_current_buf()
+    vim.cmd("write")
+    vim.cmd("VimtexCompile")
+
+    -- Give the initial compile a moment to create the PDF before opening it.
+    vim.defer_fn(function()
+        if vim.api.nvim_buf_is_valid(source_buf) then
+            vim.api.nvim_buf_call(source_buf, function()
+                vim.cmd("VimtexView")
+            end)
+        end
+    end, 1200)
+end, { desc = "Compile and preview LaTeX" })
